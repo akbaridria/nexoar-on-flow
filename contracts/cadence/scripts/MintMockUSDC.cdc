@@ -1,0 +1,6 @@
+
+
+access(all)
+fun main() {
+
+}
