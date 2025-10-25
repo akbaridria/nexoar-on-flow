@@ -23,6 +23,12 @@
 			"aliases": {
 				"testing": "0000000000000007"
 			}
+		},
+		"VaultTracker": {
+			"source": "cadence/contracts/VaultTracker.cdc",
+			"aliases": {
+				"testing": "0000000000000007"
+			}
 		}
 	},
 	"dependencies": {

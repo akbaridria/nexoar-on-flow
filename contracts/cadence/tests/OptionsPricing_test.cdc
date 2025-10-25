@@ -15,7 +15,7 @@ access(all) fun testOptionsPricing_Calculations() {
     let isCall = true
     let expectedPremium = 2287.08881335
 
-    let scriptCode = Test.readFile("../scripts/GetPremium.cdc")
+    let scriptCode = Test.readFile("../scripts/options-pricing/GetPremium.cdc")
 
     let result = Test.executeScript(
         scriptCode, [spot, strike, duration, isCall]
