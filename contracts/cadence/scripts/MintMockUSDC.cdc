@@ -1,6 +1,0 @@
-
-
-access(all)
-fun main() {
-
-}
