@@ -12,6 +12,12 @@
 				"testing": "0000000000000007"
 			}
 		},
+		"LiquidityManager": {
+			"source": "cadence/contracts/LiquidityManager.cdc",
+			"aliases": {
+				"testing": "0000000000000007"
+			}
+		},
 		"MockUSDC": {
 			"source": "cadence/contracts/MockUSDC.cdc",
 			"aliases": {
