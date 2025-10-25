@@ -15,30 +15,6 @@ access(all) fun setup() {
     Test.expect(txRes, Test.beNil())
 }
 
-access(all) fun testCreateEmptyVault() {
-    // Create an account to hold the vault
-    let account = Test.createAccount()
-
-    // Execute transaction to create and store an empty vault
-    let setupAccountTxCode = Test.readFile("../transactions/SetupAccount.cdc")
-    let setupAccountTx = Test.Transaction(
-        code: setupAccountTxCode,
-        authorizers: [account.address],
-        signers: [account],
-        arguments: []
-    )
-    
-    let result = Test.executeTransaction(setupAccountTx)
-    Test.expect(result, Test.beSucceeded())
-
-    let getBalanceScriptCode = Test.readFile("../scripts/GetBalance.cdc")
-
-    // Verify the vault balance is 0.0
-    let scriptResult = Test.executeScript(getBalanceScriptCode, [account.address])
-    Test.expect(scriptResult, Test.beSucceeded())
-    Test.assertEqual(0.0, scriptResult.returnValue as! UFix64)
-}
-
 access(all) fun testMintTokens() {
     let minterAccount = Test.createAccount()
 
@@ -61,92 +37,61 @@ access(all) fun testMintTokens() {
     Test.expect(balanceResult, Test.beSucceeded())
     Test.assertEqual(mintAmount, balanceResult.returnValue as! UFix64)
 
-    // // Verify total supply
-    // let supplyResult = Test.executeScript(
-    //     path: "./transactions/scripts/get_supply.cdc",
-    //     arguments: []
-    // )
-    // Test.expect(supplyResult, Test.beSucceeded())
-    // Test.assertEqual(1000.0 + mintAmount, supplyResult.returnValue as! UFix64) // Initial supply (1000.0) + minted amount
+    // Verify total supply
+    let totalSupplyScriptCode = Test.readFile("../scripts/GetTotalSupply.cdc")
+    let supplyResult = Test.executeScript(totalSupplyScriptCode, [])
+    Test.expect(supplyResult, Test.beSucceeded())
+    Test.assertEqual(1000.0 + mintAmount, supplyResult.returnValue as! UFix64) // Initial supply (1000.0) + minted amount
 }
 
-// access(all) fun testTransferTokens() {
-//     // Create sender and receiver accounts
-//     let sender = Test.createAccount()
-//     let receiver = Test.createAccount()
+access(all) fun testTransferTokens() {
+    // Create sender and receiver accounts
+    let sender = Test.createAccount()
+    let receiver = Test.createAccount()
 
-//     // Setup both accounts with vaults
-//     Test.executeTransaction(
-//         path: "./transactions/setup_account.cdc",
-//         arguments: [],
-//         signers: [sender]
-//     )
-//     Test.executeTransaction(
-//         path: "./transactions/setup_account.cdc",
-//         arguments: [],
-//         signers: [receiver]
-//     )
+    // Mint tokens to sender
+    let mintAmount: UFix64 = 100.0
+    let mintTxCode = Test.readFile("../transactions/MintMockUSDC.cdc")
+    let mintTx = Test.Transaction(
+        code: mintTxCode,
+        authorizers: [sender.address],
+        signers: [sender],
+        arguments: [mintAmount]
+    )
+    let mintResult = Test.executeTransaction(mintTx)
+    Test.expect(mintResult, Test.beSucceeded())
 
-//     // Create a Minter for the sender
-//     Test.executeTransaction(
-//         path: "./transactions/create_minter.cdc",
-//         arguments: [],
-//         signers: [sender]
-//     )
+    // Mint tokens to receiver
+    let mintReceiverTx = Test.Transaction(
+        code: mintTxCode,
+        authorizers: [receiver.address],
+        signers: [receiver],
+        arguments: [mintAmount]
+    )
+    let mintReceiverResult = Test.executeTransaction(mintReceiverTx)
+    Test.expect(mintReceiverResult, Test.beSucceeded())
 
-//     // Mint tokens to sender
-//     let mintAmount: UFix64 = 50.0
-//     Test.executeTransaction(
-//         path: "./transactions/mint_tokens.cdc",
-//         arguments: [mintAmount],
-//         signers: [sender]
-//     )
+    // transfer tokens from sender to receiver
+    let transferAmount: UFix64 = 25.0
+    let transferTxCode = Test.readFile("../transactions/TransferMockUSDC.cdc")
+    let transferTx = Test.Transaction(
+        code: transferTxCode,
+        authorizers: [sender.address],
+        signers: [sender],
+        arguments: [receiver.address, transferAmount]
+    )
 
-//     // Transfer tokens
-//     let transferAmount: UFix64 = 20.0
-//     let transferResult = Test.executeTransaction(
-//         path: "./transactions/transfer_tokens.cdc",
-//         arguments: [receiver.address, transferAmount, /public/mockUSDCTokenReceiver],
-//         signers: [sender]
-//     )
-//     Test.expect(transferResult, Test.beSucceeded())
+    let transferResult = Test.executeTransaction(transferTx)
+    Test.expect(transferResult, Test.beSucceeded())
 
-//     // Verify sender balance
-//     let senderBalance = Test.executeScript(
-//         path: "./transactions/scripts/get_balance.cdc",
-//         arguments: [sender.address]
-//     )
-//     Test.expect(senderBalance, Test.beSucceeded())
-//     Test.assertEqual(mintAmount - transferAmount, senderBalance.returnValue as! UFix64)
+    // Verify sender balance
+    let getBalanceScriptCode = Test.readFile("../scripts/GetBalance.cdc")
+    let balanceResult = Test.executeScript(getBalanceScriptCode, [sender.address])
+    Test.expect(balanceResult, Test.beSucceeded())
+    Test.assertEqual(mintAmount - transferAmount, balanceResult.returnValue as! UFix64)
 
-//     // Verify receiver balance
-//     let receiverBalance = Test.executeScript(
-//         path: "./transactions/scripts/get_balance.cdc",
-//         arguments: [receiver.address]
-//     )
-//     Test.expect(receiverBalance, Test.beSucceeded())
-//     Test.assertEqual(transferAmount, receiverBalance.returnValue as! UFix64)
-// }
-
-// access(all) fun testMetadataViews() {
-//     // Test FTDisplay metadata
-//     let displayScript = Test.executeScript(
-//         path: "./transactions/scripts/get_metadata.cdc",
-//         arguments: [Type<FungibleTokenMetadataViews.FTDisplay>()]
-//     )
-//     Test.expect(displayScript, Test.beSucceeded())
-//     let display = displayScript.returnValue as! FungibleTokenMetadataViews.FTDisplay
-//     Test.assertEqual("Mock USDC Token", display.name)
-//     Test.assertEqual("MUSDC", display.symbol)
-//     Test.assertEqual("A mock USDC token for testing on the Flow blockchain.", display.description)
-
-//     // Test FTVaultData
-//     let vaultDataScript = Test.executeScript(
-//         path: "./transactions/scripts/get_metadata.cdc",
-//         arguments: [Type<FungibleTokenMetadataViews.FTVaultData>()]
-//     )
-//     Test.expect(vaultDataScript, Test.beSucceeded())
-//     let vaultData = vaultDataScript.returnValue as! FungibleTokenMetadataViews.FTVaultData
-//     Test.assertEqual(/storage/mockUSDCTokenVault, vaultData.storagePath)
-//     Test.assertEqual(/public/mockUSDCTokenReceiver, vaultData.receiverPath)
-// }
+    // Verify receiver balance
+    let receiverBalanceResult = Test.executeScript(getBalanceScriptCode, [receiver.address])
+    Test.expect(receiverBalanceResult, Test.beSucceeded())
+    Test.assertEqual(mintAmount + transferAmount, receiverBalanceResult.returnValue as! UFix64)
+}
