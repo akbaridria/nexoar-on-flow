@@ -8,13 +8,13 @@ import "MockUSDC"
 access(all)
 contract NexoarCore {
     // data errors
-    access(all) var StrikePriceZeroError: String
-    access(all) var DaysZeroError: String
-    access(all) var SizeZeroError: String
-    access(all) var PremiumMismatchError: String
-    access(all) var OptionDoesNotExistError: String
-    access(all) var OptionNotExpiredError: String
-    access(all) var OptionAlreadyExercisedError: String
+    access(all) let StrikePriceZeroError: String
+    access(all) let DaysZeroError: String
+    access(all) let SizeZeroError: String
+    access(all) let PremiumMismatchError: String
+    access(all) let OptionDoesNotExistError: String
+    access(all) let OptionNotExpiredError: String
+    access(all) let OptionAlreadyExercisedError: String
 
     // data vars
     access(all) var optionId: UInt64
@@ -25,17 +25,17 @@ contract NexoarCore {
 
 
     access(all) struct OptionsData {
-        access(all) let optionId: UInt64
-        access(all) let owner: Address
-        access(all) let strike: UInt64
-        access(all) let expiry: UInt64
-        access(all) let size: UInt64
-        access(all) let isCall: Bool
-        access(all) let premium: UFix64
-        access(all) let lockedLiquidity: UInt64
-        access(all) let isExercised: Bool
-        access(all) let profit: UFix64
-        access(all) let exercisePrice: UInt64
+        access(all) var optionId: UInt64
+        access(all) var owner: Address
+        access(all) var strike: UInt64
+        access(all) var expiry: UInt64
+        access(all) var size: UInt64
+        access(all) var isCall: Bool
+        access(all) var premium: UFix64
+        access(all) var lockedLiquidity: UInt64
+        access(all) var isExercised: Bool
+        access(all) var profit: UFix64
+        access(all) var exercisePrice: UInt64
 
         init(optionId: UInt64, owner: Address, strike: UInt64, expiry: UInt64, size: UInt64, isCall: Bool, premium: UFix64, lockedLiquidity: UInt64, isExercised: Bool, profit: UFix64, exercisePrice: UInt64) {
             self.optionId = optionId
@@ -55,7 +55,7 @@ contract NexoarCore {
     access(self) let oracleFeeVault: @{FungibleToken.Vault}
     access(self) var vault: @MockUSDC.Vault
 
-    access(all) fun getTokenPriceInUSD(tokenSymbol: String): UFix64 {
+    access(self) fun getTokenPriceInUSD(tokenSymbol: String): UFix64 {
         let payment <- self.oracleFeeVault.withdraw(
             amount: BandOracle.getFee()
         )
@@ -69,7 +69,7 @@ contract NexoarCore {
         return priceData.fixedPointRate
     }
 
-    access(all) fun createOption(payment: auth(FungibleToken.Withdraw) &MockUSDC.Vault, strikePrice: UFix64, days: UInt64, isCall: Bool, size: UInt64, tokenSymbol: String, address: Address): UInt64 {
+    access(all) fun createOption(payment: auth(FungibleToken.Withdraw) &MockUSDC.Vault, strikePrice: UFix64, days: UInt64, isCall: Bool, size: UInt64, tokenSymbol: String, address: Address): OptionsData {
         assert(strikePrice > 0.0, message: self.StrikePriceZeroError)
         assert(days > 0, message: self.DaysZeroError)
         assert(size > 0, message: self.SizeZeroError)
@@ -106,10 +106,12 @@ contract NexoarCore {
             profit: 0.0,
             exercisePrice: 0
         )
-
+        if !self.userOptions.containsKey(address) {
+            self.userOptions[address] = []
+        }
         self.userOptions[address]!.append(newOptionId)
         
-        return newOptionId
+        return self.optionsData[newOptionId]!
     }
 
     access(all) fun exerciseOption(optionId: UInt64, recipient: &{FungibleToken.Receiver}) {
@@ -173,22 +175,18 @@ contract NexoarCore {
         LiquidityManager.removeLiquidity(provider: address, amount: amount)
     }
 
-    access(all) fun getDetailOptionsData(optionId: UInt64): {String: AnyStruct} {
-        assert(self.optionsData.containsKey(optionId), message: self.OptionDoesNotExistError)
-        let option = self.optionsData[optionId]!
-        return {
-            "optionId": option.optionId,
-            "owner": option.owner,
-            "strike": option.strike,
-            "expiry": option.expiry,
-            "size": option.size,
-            "isCall": option.isCall,
-            "premium": option.premium,
-            "lockedLiquidity": option.lockedLiquidity,
-            "isExercised": option.isExercised,
-            "profit": option.profit,
-            "exercisePrice": option.exercisePrice
+    access(all) fun getDetailOptionsData(optionId: UInt64): OptionsData? {
+        if self.optionsData.containsKey(optionId) {
+            return self.optionsData[optionId]!
         }
+        return nil
+    }
+
+    access(all) fun getUserOptions(address: Address): [UInt64] {
+        if self.userOptions.containsKey(address) {
+            return self.userOptions[address]!
+        }
+        return []
     }
 
     access(all) fun getProviderBalance(provider: Address): UFix64 {

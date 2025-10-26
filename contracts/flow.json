@@ -1,13 +1,13 @@
 {
 	"contracts": {
-		"Counter": {
-			"source": "cadence/contracts/Counter.cdc",
+		"BetResolveHandler": {
+			"source": "cadence/contracts/BetResolveHandler.cdc",
 			"aliases": {
 				"testing": "0000000000000007"
 			}
 		},
-		"CounterTransactionHandler": {
-			"source": "cadence/contracts/CounterTransactionHandler.cdc",
+		"Flashbet": {
+			"source": "cadence/contracts/Flashbet.cdc",
 			"aliases": {
 				"testing": "0000000000000007"
 			}
@@ -26,6 +26,12 @@
 		},
 		"NexoarCore": {
 			"source": "cadence/contracts/NexoarCore.cdc",
+			"aliases": {
+				"testing": "0000000000000007"
+			}
+		},
+		"OptionExerciseHandler": {
+			"source": "cadence/contracts/OptionExerciseHandler.cdc",
 			"aliases": {
 				"testing": "0000000000000007"
 			}
@@ -164,13 +170,29 @@
 				"type": "file",
 				"location": "emulator-account.pkey"
 			}
+		},
+		"nexoar": {
+			"address": "8503803c3acf6d56",
+			"key": {
+				"type": "file",
+				"location": "nexoar.pkey"
+			}
 		}
 	},
 	"deployments": {
 		"emulator": {
-			"emulator-account": [
-				"Counter",
-				"CounterTransactionHandler"
+			"emulator-account": []
+		},
+		"testnet": {
+			"nexoar": [
+				"MockUSDC",
+				"NexoarCore",
+				"OptionExerciseHandler",
+				"OptionsPricing",
+				"VaultTracker",
+				"BetResolveHandler",
+				"Flashbet",
+				"LiquidityManager"
 			]
 		}
 	}

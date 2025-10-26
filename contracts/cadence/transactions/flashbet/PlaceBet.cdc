@@ -1,19 +1,17 @@
-import "NexoarCore"
+import "Flashbet"
 import "MockUSDC"
 import "FungibleTokenMetadataViews"
 import "FungibleToken"
-import "OptionsPricing"
 import "FlowTransactionScheduler"
 import "FlowTransactionSchedulerUtils"
-import "OptionExerciseHandler"
+import "BetResolveHandler"
 import "FlowToken"
 
 transaction(
-    strikePrice: UFix64,
-    days: UInt64,
-    isCall: Bool,
-    size: UInt64,
-    tokenSymbol: String,
+    duration: UInt64,
+    amount: UFix64,
+    baseToken: String,
+    isBetUp: Bool,
     recipient: Address,
     priority: UInt8,
     executionEffort: UInt64
@@ -24,7 +22,7 @@ transaction(
 
     prepare(account: auth(BorrowValue, SaveValue, IssueStorageCapabilityController, PublishCapability, GetStorageCapabilityController) &Account) {
         self.account = account
-        
+
         let vaultData = MockUSDC.resolveContractView(resourceType: nil, viewType: Type<FungibleTokenMetadataViews.FTVaultData>()) as! FungibleTokenMetadataViews.FTVaultData?
             ?? panic("Could not resolve FTVaultData view")
 
@@ -40,23 +38,20 @@ transaction(
     }
 
     execute {
-        
-        let option = NexoarCore.createOption(
+        let bet = Flashbet.placeBet(
             payment: self.payment,
-            strikePrice: strikePrice,
-            days: days,
-            isCall: isCall,
-            size: size,
-            tokenSymbol: tokenSymbol,
-            address: self.accountAddress
+            address: self.accountAddress,
+            duration: duration,
+            amount: amount,
+            baseToken: baseToken,
+            isBetUp: isBetUp
         )
 
-        let optionId = option.optionId
-        let expiry = option.expiry
+        let betId = bet.betId
+        let expiresAt = bet.expiresAt
 
-        
         var handlerCap: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>? = nil
-        let controllers = self.account.capabilities.storage.getControllers(forPath: /storage/OptionExerciseHandler)
+        let controllers = self.account.capabilities.storage.getControllers(forPath: /storage/BetResolveHandler)
         for c in controllers {
             if c.capability.getType().isSubtype(of: Type<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>()) {
                 handlerCap = c.capability as? Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>
@@ -65,7 +60,6 @@ transaction(
         }
         assert(handlerCap != nil, message: "Handler capability not found")
 
-        
         if self.account.storage.borrow<&AnyResource>(from: FlowTransactionSchedulerUtils.managerStoragePath) == nil {
             let manager <- FlowTransactionSchedulerUtils.createManager()
             self.account.storage.save(<-manager, to: FlowTransactionSchedulerUtils.managerStoragePath)
@@ -75,13 +69,11 @@ transaction(
         let manager = self.account.storage.borrow<auth(FlowTransactionSchedulerUtils.Owner) &{FlowTransactionSchedulerUtils.Manager}>(from: FlowTransactionSchedulerUtils.managerStoragePath)
             ?? panic("Could not borrow a Manager reference")
 
-        
         let data: {String: AnyStruct} = {
-            "optionId": optionId,
+            "betId": betId,
             "recipient": recipient
         }
 
-        
         let pr = priority == 0
             ? FlowTransactionScheduler.Priority.High
             : priority == 1
@@ -90,7 +82,7 @@ transaction(
 
         let est = FlowTransactionScheduler.estimate(
             data: data,
-            timestamp: UFix64(expiry) + 3.0, // add buffer 3 seconds
+            timestamp: expiresAt + 3.0, // add buffer 3 seconds
             priority: pr,
             executionEffort: executionEffort
         )
@@ -104,15 +96,14 @@ transaction(
             ?? panic("missing FlowToken vault")
         let fees <- flowVault.withdraw(amount: est.flowFee ?? 0.0) as! @FlowToken.Vault
 
-        
         let scheduledId = manager.schedule(
             handlerCap: handlerCap!,
             data: data,
-            timestamp: UFix64(expiry),
+            timestamp: expiresAt,
             priority: pr,
             executionEffort: executionEffort,
             fees: <-fees
         )
-        log("Scheduled option exercise with id ".concat(scheduledId.toString()).concat(" at ").concat(expiry.toString()))
+        log("Scheduled bet resolve with id ".concat(scheduledId.toString()).concat(" at ").concat(expiresAt.toString()))
     }
 }
