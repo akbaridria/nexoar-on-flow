@@ -1,0 +1,229 @@
+import "BandOracle"
+import "FlowToken"
+import "FungibleToken"
+import "LiquidityManager"
+import "OptionsPricing"
+import "MockUSDC"
+
+access(all)
+contract NexoarCore {
+    // data errors
+    access(all) var StrikePriceZeroError: String
+    access(all) var DaysZeroError: String
+    access(all) var SizeZeroError: String
+    access(all) var PremiumMismatchError: String
+    access(all) var OptionDoesNotExistError: String
+    access(all) var OptionNotExpiredError: String
+    access(all) var OptionAlreadyExercisedError: String
+
+    // data vars
+    access(all) var optionId: UInt64
+    access(all) var protocolRevenue: UFix64
+    access(all) var protocolRevenuePercentage: UFix64
+    access(all) var userOptions: {Address: [UInt64]}
+    access(all) var optionsData: {UInt64: OptionsData}
+
+
+    access(all) struct OptionsData {
+        access(all) let optionId: UInt64
+        access(all) let owner: Address
+        access(all) let strike: UInt64
+        access(all) let expiry: UInt64
+        access(all) let size: UInt64
+        access(all) let isCall: Bool
+        access(all) let premium: UFix64
+        access(all) let lockedLiquidity: UInt64
+        access(all) let isExercised: Bool
+        access(all) let profit: UFix64
+        access(all) let exercisePrice: UInt64
+
+        init(optionId: UInt64, owner: Address, strike: UInt64, expiry: UInt64, size: UInt64, isCall: Bool, premium: UFix64, lockedLiquidity: UInt64, isExercised: Bool, profit: UFix64, exercisePrice: UInt64) {
+            self.optionId = optionId
+            self.owner = owner
+            self.strike = strike
+            self.expiry = expiry
+            self.size = size
+            self.isCall = isCall
+            self.premium = premium
+            self.lockedLiquidity = lockedLiquidity
+            self.isExercised = isExercised
+            self.profit = profit
+            self.exercisePrice = exercisePrice
+        }
+    }
+
+    access(self) let oracleFeeVault: @{FungibleToken.Vault}
+    access(self) var vault: @MockUSDC.Vault
+
+    access(all) fun getTokenPriceInUSD(tokenSymbol: String): UFix64 {
+        let payment <- self.oracleFeeVault.withdraw(
+            amount: BandOracle.getFee()
+        )
+
+        let priceData = BandOracle.getReferenceData(
+            baseSymbol: tokenSymbol,
+            quoteSymbol: "USD",
+            payment: <- payment
+        )
+
+        return priceData.fixedPointRate
+    }
+
+    access(all) fun createOption(payment: auth(FungibleToken.Withdraw) &MockUSDC.Vault, strikePrice: UFix64, days: UInt64, isCall: Bool, size: UInt64, tokenSymbol: String, address: Address): UInt64 {
+        assert(strikePrice > 0.0, message: self.StrikePriceZeroError)
+        assert(days > 0, message: self.DaysZeroError)
+        assert(size > 0, message: self.SizeZeroError)
+
+        let newOptionId = self.optionId
+        self.optionId = self.optionId + 1
+
+        let premium = OptionsPricing.calculatePremium(
+            spot: self.getTokenPriceInUSD(tokenSymbol: tokenSymbol),
+            strike: strikePrice,
+            duration: UFix64(days),
+            isCall: isCall
+        )
+        
+        // Deposit premium to protocol vaul
+        self.vault.deposit(from: <- payment.withdraw(amount: premium))
+
+        // currently hardcoded liquidity requirement as 2x premium
+        // this can be adjusted based on risk models later
+        var lockedLiquidity = premium * 2.0
+        LiquidityManager.lockLiquidity(amount: lockedLiquidity)
+
+        let expiryTime = UInt64(getCurrentBlock().timestamp) + (days * 86400)
+        self.optionsData[newOptionId] = OptionsData(
+            optionId: newOptionId,
+            owner: address,
+            strike: UInt64(strikePrice),
+            expiry: expiryTime,
+            size: size,
+            isCall: isCall,
+            premium: premium,
+            lockedLiquidity: size,
+            isExercised: false,
+            profit: 0.0,
+            exercisePrice: 0
+        )
+
+        self.userOptions[address]!.append(newOptionId)
+        
+        return newOptionId
+    }
+
+    access(all) fun exerciseOption(optionId: UInt64, recipient: &{FungibleToken.Receiver}) {
+        
+        assert(self.optionsData.containsKey(optionId), message: self.OptionDoesNotExistError)
+        let option = self.optionsData[optionId]!
+        assert(UInt64(getCurrentBlock().timestamp) >= option.expiry, message: self.OptionNotExpiredError)
+        assert(!option.isExercised, message: self.OptionAlreadyExercisedError)
+
+        
+        let spot = self.getTokenPriceInUSD(tokenSymbol: "USD") 
+
+        
+        let intrinsic = OptionsPricing.calculateIntrinsic(
+            spot: spot,
+            strike: UFix64(option.strike),
+            isCall: option.isCall
+        )
+        let payout = intrinsic * UFix64(option.size)
+
+        
+        let protocolRevenue = option.premium * 0.10
+        self.protocolRevenue = self.protocolRevenue + protocolRevenue
+
+        
+        LiquidityManager.unlockLiquidity(amount: UFix64(option.lockedLiquidity))
+
+        
+        let pnl = Fix64(payout - option.premium)
+        LiquidityManager.distributePnL(pnl: pnl)
+
+        
+        if payout > 0.0 {
+            let vault <- self.vault.withdraw(amount: payout)
+            recipient.deposit(from: <-vault)
+        }
+
+        
+        self.optionsData[optionId] = OptionsData(
+            optionId: option.optionId,
+            owner: option.owner,
+            strike: option.strike,
+            expiry: option.expiry,
+            size: option.size,
+            isCall: option.isCall,
+            premium: option.premium,
+            lockedLiquidity: option.lockedLiquidity,
+            isExercised: true,
+            profit: payout - option.premium,
+            exercisePrice: UInt64(spot)
+        )
+    }
+
+    access(all) fun addLiquidity(payment: @MockUSDC.Vault, amount: UFix64, address: Address) {
+        self.vault.deposit(from: <- payment)
+        LiquidityManager.addLiquidity(provider: address, amount: amount)
+    }
+
+    access(all) fun removeLiquidity(amount: UFix64, address: Address, recipient: &{FungibleToken.Receiver}) {
+        recipient.deposit(from: <- self.vault.withdraw(amount: amount))
+        LiquidityManager.removeLiquidity(provider: address, amount: amount)
+    }
+
+    access(all) fun getDetailOptionsData(optionId: UInt64): {String: AnyStruct} {
+        assert(self.optionsData.containsKey(optionId), message: self.OptionDoesNotExistError)
+        let option = self.optionsData[optionId]!
+        return {
+            "optionId": option.optionId,
+            "owner": option.owner,
+            "strike": option.strike,
+            "expiry": option.expiry,
+            "size": option.size,
+            "isCall": option.isCall,
+            "premium": option.premium,
+            "lockedLiquidity": option.lockedLiquidity,
+            "isExercised": option.isExercised,
+            "profit": option.profit,
+            "exercisePrice": option.exercisePrice
+        }
+    }
+
+    access(all) fun getProviderBalance(provider: Address): UFix64 {
+        return LiquidityManager.getProviderBalance(provider: provider)
+    }
+
+    access(all) fun getPoolInfo(): {String: AnyStruct} {
+        return {
+            "totalLiquidity": LiquidityManager.totalLiquidity,
+            "lockedLiquidity": LiquidityManager.lockedLiquidity,
+            "availableLiquidity": LiquidityManager.totalLiquidity - LiquidityManager.lockedLiquidity
+        }
+    }
+
+    init() {
+        self.optionId = 0
+        self.protocolRevenue = 0.0
+        self.protocolRevenuePercentage = 0.1 // 10% from the premium
+        self.optionsData = {}
+        self.userOptions = {}
+        self.oracleFeeVault <- FlowToken.createEmptyVault(
+            vaultType: Type<@FlowToken.Vault>()
+        )
+        self.vault <- MockUSDC.createEmptyVault(
+            vaultType: Type<@MockUSDC.Vault>()
+        )
+
+
+        // Errors
+        self.StrikePriceZeroError = "Strike price must be greater than zero"
+        self.DaysZeroError = "Days must be greater than zero"
+        self.SizeZeroError = "Size must be greater than zero"
+        self.PremiumMismatchError = "Calculated premium does not match expected premium"
+        self.OptionDoesNotExistError = "Option does not exist"
+        self.OptionNotExpiredError = "Option has not expired yet"
+        self.OptionAlreadyExercisedError = "Option has already been exercised"
+    }
+}

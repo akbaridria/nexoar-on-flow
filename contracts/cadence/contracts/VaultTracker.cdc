@@ -49,7 +49,7 @@ access(all) contract VaultTracker {
     }
 
     // Public functions
-    access(account) fun addStake(provider: Address, amount: UFix64) {
+    access(all) fun addStake(provider: Address, amount: UFix64) {
         pre {
             amount > 0.0: "Amount must be greater than zero"
         }
@@ -82,7 +82,7 @@ access(all) contract VaultTracker {
         emit StakeAdded(provider: provider, amount: amount)
     }
 
-    access(account) fun removeStake(provider: Address, amount: UFix64) {
+    access(all) fun removeStake(provider: Address, amount: UFix64) {
         pre {
             amount > 0.0: "Amount must be greater than zero"
             self.providerData.containsKey(provider): "Provider has no stake"
@@ -136,7 +136,7 @@ access(all) contract VaultTracker {
         emit StakeRemoved(provider: provider, amount: amount)
     }
 
-    access(account) fun distributePnL(pnl: Fix64) {
+    access(all) fun distributePnL(pnl: Fix64) {
         if self.totalStaked == 0.0 {
             return
         }

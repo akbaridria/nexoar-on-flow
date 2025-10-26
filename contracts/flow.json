@@ -24,6 +24,12 @@
 				"testing": "0000000000000007"
 			}
 		},
+		"NexoarCore": {
+			"source": "cadence/contracts/NexoarCore.cdc",
+			"aliases": {
+				"testing": "0000000000000007"
+			}
+		},
 		"OptionsPricing": {
 			"source": "cadence/contracts/OptionsPricing.cdc",
 			"aliases": {
@@ -38,6 +44,13 @@
 		}
 	},
 	"dependencies": {
+		"BandOracle": {
+			"source": "testnet://9fb6606c300b5051.BandOracle",
+			"hash": "ed8988051b9bc1d397304fea1bcd7a02aa0e75649797d030e358c4d20bcaf070",
+			"aliases": {
+				"testnet": "9fb6606c300b5051"
+			}
+		},
 		"Burner": {
 			"source": "testnet://9a0766d93b6608b7.Burner",
 			"hash": "71af18e227984cd434a3ad00bb2f3618b76482842bae920ee55662c37c8bf331",
