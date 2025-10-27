@@ -26,8 +26,18 @@ transaction(
         let vaultData = MockUSDC.resolveContractView(resourceType: nil, viewType: Type<FungibleTokenMetadataViews.FTVaultData>()) as! FungibleTokenMetadataViews.FTVaultData?
             ?? panic("Could not resolve FTVaultData view")
 
-        if !account.storage.check<&MockUSDC.Vault>(from: vaultData.storagePath) {
+        if account.storage.check<&MockUSDC.Vault>(from: vaultData.storagePath) == nil {
             account.storage.save(<-MockUSDC.createEmptyVault(vaultType: Type<@MockUSDC.Vault>()), to: vaultData.storagePath)
+        }
+
+        if account.storage.borrow<&AnyResource>(from: /storage/BetResolveHandler) == nil {
+            let handler <- BetResolveHandler.createHandler()
+            account.storage.save(<-handler, to: /storage/BetResolveHandler)
+            let _ = account.capabilities.storage
+                .issue<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>(/storage/BetResolveHandler)
+            let publicCap = account.capabilities.storage
+                .issue<&{FlowTransactionScheduler.TransactionHandler}>(/storage/BetResolveHandler)
+            account.capabilities.publish(publicCap, at: /public/BetResolveHandler)
         }
 
         let vaultRef = account.storage.borrow<auth(FungibleToken.Withdraw) &MockUSDC.Vault>(from: vaultData.storagePath)
@@ -51,13 +61,17 @@ transaction(
         let expiresAt = bet.expiresAt
 
         var handlerCap: Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>? = nil
-        let controllers = self.account.capabilities.storage.getControllers(forPath: /storage/BetResolveHandler)
-        for c in controllers {
-            if c.capability.getType().isSubtype(of: Type<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>()) {
-                handlerCap = c.capability as? Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>
-                break
-            }
+        
+        if let cap = self.account.capabilities.storage
+                            .getControllers(forPath: /storage/BetResolveHandler)[0]
+                            .capability as? Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}> {
+            handlerCap = cap
+        } else {
+            handlerCap = self.account.capabilities.storage
+                            .getControllers(forPath: /storage/BetResolveHandler)[1]
+                            .capability as! Capability<auth(FlowTransactionScheduler.Execute) &{FlowTransactionScheduler.TransactionHandler}>
         }
+        
         assert(handlerCap != nil, message: "Handler capability not found")
 
         if self.account.storage.borrow<&AnyResource>(from: FlowTransactionSchedulerUtils.managerStoragePath) == nil {
