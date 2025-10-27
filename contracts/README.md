@@ -1,149 +1,106 @@
-# Scheduled Transactions Demo: Increment the Counter
+# Nexoar On Flow: Liquidity, Options, and Flashbet Demo
 
-This example shows how to schedule a transaction that increments the `Counter` in the near future and verify it on the Flow Emulator using the scheduler manager.
+This project demonstrates a DeFi protocol on Flow with scheduled transactions, liquidity management, options trading, and flashbet functionality.
 
-## Files used
+## Key Contracts
 
-- `cadence/contracts/Counter.cdc`
-- `cadence/contracts/CounterTransactionHandler.cdc`
-- `cadence/transactions/InitSchedulerManager.cdc`
-- `cadence/transactions/InitCounterTransactionHandler.cdc`
-- `cadence/transactions/ScheduleIncrementIn.cdc`
-- `cadence/scripts/GetCounter.cdc`
+- [`cadence/contracts/NexoarCore.cdc`](cadence/contracts/NexoarCore.cdc)
+- [`cadence/contracts/LiquidityManager.cdc`](cadence/contracts/LiquidityManager.cdc)
+- [`cadence/contracts/VaultTracker.cdc`](cadence/contracts/VaultTracker.cdc)
+- [`cadence/contracts/OptionsPricing.cdc`](cadence/contracts/OptionsPricing.cdc)
+- [`cadence/contracts/MockUSDC.cdc`](cadence/contracts/MockUSDC.cdc)
+- [`cadence/contracts/Flashbet.cdc`](cadence/contracts/Flashbet.cdc)
+- [`cadence/contracts/BetResolveHandler.cdc`](cadence/contracts/BetResolveHandler.cdc)
+- [`cadence/contracts/OptionExerciseHandler.cdc`](cadence/contracts/OptionExerciseHandler.cdc)
 
-## 1) Start the emulator with Scheduled Transactions
+## Project Structure
 
-```bash
-flow emulator --block-time 1s
+- `flow.json` – Project configuration and contract deployment settings
+- `/cadence/contracts` – Core protocol contracts
+- `/cadence/transactions` – State-changing operations (mint, add/remove liquidity, create/exercise options, place bets)
+- `/cadence/scripts` – Read-only queries (balances, pool info, provider info)
+- `/cadence/tests` – Integration tests for contracts and flows
+
+## Example Workflow
+
+### 1. Mint Mock USDC
+
+```sh
+flow transactions send cadence/transactions/mock-usdc/MintMockUSDC.cdc \
+  --network testnet \
+  --signer nexoar-on-flow \
+  --args-json '[{"type": "UFix64", "value": "100000.0"}]'
 ```
 
-Keep this running. Open a new terminal for the next steps.
+### 2. Add Liquidity
 
-## 2) Deploy contracts
-
-```bash
-flow project deploy --network emulator
+```sh
+flow transactions send cadence/transactions/nexoar-core/AddLiquidity.cdc \
+  --network testnet \
+  --signer nexoar-on-flow \
+  --args-json '[{"type": "UFix64", "value": "50000.0"}]'
 ```
 
-This deploys `Counter` and `CounterTransactionHandler` (see `flow.json`).
+### 3. Create an Option
 
-## 3) Initialize the scheduler manager (if not already done)
-
-The scheduler manager is now integrated into the scheduling transactions, so this step is optional. The manager will be created automatically when you schedule your first transaction.
-
-If you want to initialize it separately:
-
-```bash
-flow transactions send cadence/transactions/InitSchedulerManager.cdc \
-  --network emulator \
-  --signer emulator-account
+```sh
+flow transactions send cadence/transactions/nexoar-core/CreateOptions.cdc \
+  --network testnet \
+  --signer nexoar-on-flow \
+  --args-json '[{"type": "UFix64", "value": "1.0"}, {"type": "UInt64", "value": "1"}, {"type": "Bool", "value": true}, {"type": "UInt64", "value": "1"}, {"type": "String", "value": "FLOW"}, {"type": "Address", "value": "0x084a308894ddce19"}, {"type": "UInt8", "value": "1"}, {"type": "UInt64", "value": "1000"}]'
 ```
 
-## 4) Initialize the handler capability
+### 4. Place a Flashbet
 
-Saves a handler resource at `/storage/CounterTransactionHandler` and issues the correct capability for the scheduler.
-
-```bash
-flow transactions send cadence/transactions/InitCounterTransactionHandler.cdc \
-  --network emulator \
-  --signer emulator-account
+```sh
+flow transactions send cadence/transactions/flashbet/PlaceBet.cdc \
+  --network testnet \
+  --signer nexoar-on-flow \
+  --args-json '[{"type": "UInt64", "value": "180"}, {"type": "UFix64", "value": "100.0"}, {"type": "String", "value": "FLOW"}, {"type": "Bool", "value": true}, {"type": "Address", "value": "0x084a308894ddce19"}, {"type": "UInt8", "value": "1"}, {"type": "UInt64", "value": "1000"}]'
 ```
 
-## 5) Check the initial counter
+### 5. Remove Liquidity
 
-```bash
-flow scripts execute cadence/scripts/GetCounter.cdc --network emulator
+```sh
+flow transactions send cadence/transactions/nexoar-core/RemoveLiquidity.cdc \
+  --network testnet \
+  --signer nexoar-on-flow \
+  --args-json '[{"type": "UFix64", "value": "25000.0"}]'
 ```
 
-Expected: `Result: 0`
+### 6. Query Balances and Pool Info
 
-## 6) Schedule an increment in ~2 seconds
+```sh
+flow scripts execute cadence/scripts/mock-usdc/GetBalance.cdc \
+  --network testnet \
+  --args-json '[{"type": "Address", "value": "0x084a308894ddce19"}]'
 
-Uses `ScheduleIncrementIn.cdc` to compute a future timestamp relative to the current block. This transaction will automatically create the scheduler manager if it doesn't exist.
+flow scripts execute cadence/scripts/nexoar-core/GetProviderBalance.cdc \
+  --network testnet \
+  --args-json '[{"type": "Address", "value": "0x084a308894ddce19"}]'
 
-```bash
-flow transactions send cadence/transactions/ScheduleIncrementCounter.cdc \
-  --network emulator \
-  --signer emulator-account \
-  --args-json '[
-    {"type":"UFix64","value":"2.0"},
-    {"type":"UInt8","value":"1"},
-    {"type":"UInt64","value":"1000"},
-    {"type":"Optional","value":null}
-  ]'
+flow scripts execute cadence/scripts/nexoar-core/GetPoolInfo.cdc --network testnet
+
+flow scripts execute cadence/scripts/liquidity-manager/GetTotalLiquidity.cdc --network testnet
+
+flow scripts execute cadence/scripts/liquidity-manager/GetUtilizationRate.cdc --network testnet
+
+flow scripts execute cadence/scripts/liquidity-manager/GetAvailableLiquidity.cdc --network testnet
 ```
 
-Notes:
+## Testing
 
-- Priority `1` = Medium. You can use `0` = High or `2` = Low.
-- `executionEffort` must be >= 10 (1000 is a safe example value).
-- With `--block-time 1s`, blocks seal automatically; after ~3 seconds your scheduled transaction should execute.
-- The transaction uses the scheduler manager to track and manage the scheduled transaction.
+Run integration tests in [`cadence/tests`](cadence/tests) to verify contract logic for liquidity, options, and flashbet flows.
 
-## 7) Verify the counter incremented
+You can also run the full workflow and tests using:
 
-```bash
-flow scripts execute cadence/scripts/GetCounter.cdc --network emulator
+```sh
+make all
 ```
 
-Expected: `Result: 1`
+This will execute all necessary steps for the workflow in testnet as defined in the `Makefile`.
 
-## Troubleshooting
+## Notes
 
-- Invalid timestamp error: use `ScheduleIncrementIn.cdc` with a small delay (e.g., 2.0) so the timestamp is in the future.
-- Missing FlowToken vault: on emulator the default account has a vault; if you use a custom account, initialize it accordingly.
-- Manager not found: The scheduler manager is automatically created in the scheduling transactions. If you see this error, ensure you're using the latest transaction files.
-- More docs: see `/.cursor/rules/scheduledtransactions/index.md`, `agent-rules.mdc`, and `flip.md` in this repo.
-
-## 📦 Project Structure
-
-Your project has been set up with the following structure:
-
-- `flow.json` – Project configuration and dependency aliases (string-imports)
-- `/cadence` – Your Cadence code
-
-Inside the `cadence` folder you will find:
-
-- `/contracts` - This folder contains your Cadence contracts (these are deployed to the network and contain the business logic for your application)
-  - `Counter.cdc`
-  - `CounterTransactionHandler.cdc`
-
-- `/scripts` - This folder contains your Cadence scripts (read-only operations)
-  - `GetCounter.cdc`
-
-- `/transactions` - This folder contains your Cadence transactions (state-changing operations)
-  - `IncrementCounter.cdc`
-  - `ScheduleIncrementCounter.cdc`
-  - `InitSchedulerManager.cdc`
-  - `InitCounterTransactionHandler.cdc`
-
-- `/tests` - This folder contains your Cadence tests (integration tests for your contracts, scripts, and transactions to verify they behave as expected)
-  - `Counter_test.cdc`
-  - `CounterTransactionHandler_test.cdc`
-
-
-## 🔧 Additional CLI Commands
-
-If you need to perform additional setup or management tasks:
-
-**Install dependencies** (if you add new imports that require external contracts):
-```bash
-flow dependencies install
-```
-
-**Create new accounts**:
-```bash
-flow accounts create
-```
-
-**See all available CLI commands**: Check out the [Flow CLI Commands Overview](https://developers.flow.com/build/tools/flow-cli/commands)
-
-## 🔨 Additional Resources
-
-Here are some essential resources to help you learn more:
-
-- **[Flow Documentation](https://developers.flow.com/)** - The official Flow Documentation is a great starting point for learning about [building](https://developers.flow.com/build/flow) on Flow.
-- **[Cadence Documentation](https://cadence-lang.org/docs/language)** - Cadence is the native language for the Flow Blockchain. It is a resource-oriented programming language designed for developing smart contracts.
-- **[Visual Studio Code](https://code.visualstudio.com/)** and the **[Cadence Extension](https://marketplace.visualstudio.com/items?itemName=onflow.cadence)** - Recommended IDE with syntax highlighting, code completion, and other features for Cadence development.
-- **[Flow Clients](https://developers.flow.com/tools/clients)** - Clients available in multiple languages to interact with the Flow Blockchain.
-- **[Block Explorers](https://developers.flow.com/ecosystem/block-explorers)** - Tools to explore on-chain data. [Flowser](https://flowser.dev/) is a powerful block explorer for local development.
+- See the [Makefile](Makefile) for automated workflow examples.
+- For scheduled transactions, see the handler contracts and transaction files in `/cadence/transactions`.
