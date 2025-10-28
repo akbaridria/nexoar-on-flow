@@ -2,7 +2,7 @@
 NETWORK = testnet
 ACCOUNT = nexoar-on-flow
 USDC_AMOUNT = 100000.0
-LIQUIDITY_AMOUNT = 50000.0
+LIQUIDITY_AMOUNT = 100000.0
 OPTION_STRIKE = 1.0
 OPTION_DAYS = 1
 OPTION_SIZE = 1
@@ -10,7 +10,7 @@ BET_AMOUNT = 100.0
 BET_DURATION = 180
 ACCOUNT_ADDRESS = 0x084a308894ddce19
 
-.PHONY: all mint-usdc add-liquidity create-option place-bet remove-liquidity check-status check-exercise-handler get-bet-detail
+.PHONY: all mint-usdc add-liquidity create-option place-bet remove-liquidity check-status
 
 all: mint-usdc add-liquidity create-option place-bet remove-liquidity
 

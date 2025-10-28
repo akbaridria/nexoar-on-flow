@@ -151,24 +151,12 @@ access(all) contract MockUSDC: FungibleToken {
     }
 
     init() {
-        self.totalSupply = 1000.0
+        self.totalSupply = 0.0
 
         self.VaultStoragePath = /storage/mockUSDCTokenVault
         self.VaultPublicPath = /public/mockUSDCTokenVault
         self.ReceiverPublicPath = /public/mockUSDCTokenReceiver
         self.AdminStoragePath = /storage/mockUSDCAdmin
 
-        let vault <- create Vault(balance: self.totalSupply)
-        emit TokensMinted(amount: vault.balance, type: vault.getType().identifier)
-
-        let mockUSDCCap = self.account.capabilities.storage.issue<&MockUSDC.Vault>(self.VaultStoragePath)
-        self.account.capabilities.publish(mockUSDCCap, at: self.VaultPublicPath)
-        let receiverCap = self.account.capabilities.storage.issue<&MockUSDC.Vault>(self.VaultStoragePath)
-        self.account.capabilities.publish(receiverCap, at: self.ReceiverPublicPath)
-
-        self.account.storage.save(<-vault, to: /storage/mockUSDCTokenVault)
-
-        let admin <- create Minter()
-        self.account.storage.save(<-admin, to: self.AdminStoragePath)
     }
 }

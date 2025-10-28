@@ -101,7 +101,7 @@ contract NexoarCore {
             size: size,
             isCall: isCall,
             premium: premium,
-            lockedLiquidity: size,
+            lockedLiquidity: UInt64(lockedLiquidity),
             isExercised: false,
             profit: 0.0,
             exercisePrice: 0

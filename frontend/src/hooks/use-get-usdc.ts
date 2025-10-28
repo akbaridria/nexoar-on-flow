@@ -3,7 +3,7 @@ import { useFlowCurrentUser, useFlowQuery } from "@onflow/react-sdk";
 
 const GET_BALANCE_SCRIPT = `
 import FungibleToken from 0x${FlowJson.dependencies.FungibleToken.aliases.testnet}
-import MockUSDC from 0x${FlowJson.accounts.nexoar.address}
+import MockUSDC from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 import FungibleTokenMetadataViews from 0x${FlowJson.dependencies.FungibleTokenMetadataViews.aliases.testnet}
 
 access(all) fun main(address: Address): UFix64 {

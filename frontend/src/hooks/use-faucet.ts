@@ -4,7 +4,7 @@ import { useFlowMutate } from "@onflow/react-sdk";
 
 const MINT_MOCK_USDC_TRANSACTION = `
 import FungibleToken from 0x${FlowJson.dependencies.FungibleToken.aliases.testnet}
-import MockUSDC from 0x${FlowJson.accounts.nexoar.address}
+import MockUSDC from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 import FungibleTokenMetadataViews from 0x${FlowJson.dependencies.FungibleTokenMetadataViews.aliases.testnet}
 
 transaction(amount: UFix64) {
@@ -16,7 +16,7 @@ transaction(amount: UFix64) {
             ?? panic("Could not resolve FTVaultData view")
 
         // Setup vault if it doesn't exist
-        if signer.storage.check<&MockUSDC.Vault>(from: vaultData.storagePath) == nil {
+         if signer.storage.borrow<&MockUSDC.Vault>(from: vaultData.storagePath) == nil {
             signer.storage.save(<-MockUSDC.createEmptyVault(vaultType: Type<@MockUSDC.Vault>()), to: vaultData.storagePath)
         }
 
@@ -35,8 +35,8 @@ transaction(amount: UFix64) {
             ?? panic("Could not borrow Receiver reference from path ".concat(vaultData.receiverPath.toString()))
 
         // Create or borrow Minter resource
-        let minterStoragePath = /storage/mockUSDCMinter
-        if signer.storage.check<&MockUSDC.Minter>(from: minterStoragePath) == nil {
+        let minterStoragePath = MockUSDC.AdminStoragePath
+        if signer.storage.borrow<&MockUSDC.Minter>(from: minterStoragePath) == nil {
             let minter <- MockUSDC.createMinter()
             signer.storage.save(<-minter, to: minterStoragePath)
         }
