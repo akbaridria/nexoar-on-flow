@@ -1,0 +1,19 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Clip path for circle -->
+    <clipPath id="circleClip">
+      <circle cx="100" cy="100" r="90"/>
+    </clipPath>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="#e78a53"/>
+  
+  <!-- Diagonal division -->
+  <g clip-path="url(#circleClip)">
+    <polygon points="10,10 190,190 10,190" fill="#5f8787"/>
+  </g>
+  
+  <!-- Circle border for clean edge -->
+  <circle cx="100" cy="100" r="90" fill="none" stroke="#333" stroke-width="2" opacity="0.1"/>
+</svg>
