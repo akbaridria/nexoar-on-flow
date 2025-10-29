@@ -39,6 +39,18 @@ export const LIST_TABS: Array<{
   },
 ];
 
+export const SYMBOLS = [
+  "ETH",
+  "FLOW",
+  "USDC",
+  "USDT",
+  "WBTC",
+  "BNB",
+  "XRP",
+  "ADA",
+  "DOGE",
+];
+
 export const NETWORK_CONFIG: FlowConfig = {
   accessNodeUrl: "https://rest-testnet.onflow.org",
   discoveryWallet: "https://fcl-discovery.onflow.org/testnet/authn",
@@ -46,4 +58,5 @@ export const NETWORK_CONFIG: FlowConfig = {
   flowNetwork: "testnet",
   appDetailTitle: "Nexoar",
   appDetailUrl: typeof window !== "undefined" ? window.location.origin : "",
+  walletconnectProjectId: "183dd8548e76520612b2996b93ecf463"
 };
