@@ -1,6 +1,6 @@
 # Nexoar On Flow
 
-Nexoar is a decentralized application for options trading on Stacks, featuring robust liquidity management. Users can provide liquidity to earn fees, and our locked liquidity mechanism ensures payouts are secure and predictable. The protocol includes a comprehensive, on-chain premium calculation logic designed for efficiency and transparency.
+Nexoar is a decentralized application for options trading on Flow, featuring robust liquidity management. Users can provide liquidity to earn fees, and our locked liquidity mechanism ensures payouts are secure and predictable. The protocol includes a comprehensive, on-chain premium calculation logic designed for efficiency and transparency.
 
 ## On-Chain Options Pricing - Rationale and Approach
 
@@ -49,3 +49,56 @@ Where:
 $$
 \text{Premium} = \text{Intrinsic} + \text{TimeValue}
 $$
+
+## Automated Option Exercise with Flow Scheduled Transactions
+
+The Flow blockchain now supports scheduled transactions, which significantly simplifies our system design.
+
+In the past, exercising options at expiry required an off-chain script or service to trigger the exercise function.
+With scheduled transactions, the entire process is now fully automated and decentralized — no external infrastructure or cron jobs needed.
+
+Below are two diagrams illustrating the flow before and after using scheduled transactions.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant DApp as Nexoar
+    participant Contract as OptionContract
+    participant Offchain as Off-chain Service
+
+    User->>DApp: Create Option (strike, expiry, type)
+    DApp->>Contract: Store Option Data (on-chain)
+    User->>Offchain: Wait until expiry (manual trigger)
+    Offchain->>DApp: Check Expired Options
+    DApp->>Contract: Execute Exercise Function
+    Contract->>Contract: Validate expiry and calculate payout
+    Contract-->>User: Transfer Payout or Zero
+```
+
+Explanation:
+
+- User creates an option.
+- At expiry, an off-chain service or user must trigger the exercise manually.
+- This requires extra infrastructure (e.g., a backend cronjob or bot).
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant DApp as Nexoar
+    participant Contract as OptionContract
+    participant Scheduler as Flow ScheduledTx
+
+    User->>DApp: Create Option (strike, expiry, type)
+    DApp->>Contract: Store Option Data (on-chain)
+    DApp->>Scheduler: Register Exercise Tx at Expiry
+    Scheduler->>Contract: Auto-trigger Exercise Function
+    Contract->>Contract: Validate expiry and calculate payout
+    Contract-->>User: Transfer Payout or Zero
+```
+
+Explanation:
+
+- When user creates the option, NexShore also registers a scheduled transaction.
+- At expiry, Flow blockchain automatically triggers the exerciseOption() call.
+- No external bot or infra is needed, fully on-chain automation.
+
