@@ -48,13 +48,13 @@ const RowTable: React.FC<{ optId: number }> = ({ optId }) => {
       </TableRow>
     );
   }
-
+  console.log(data)
   const opt: OptionHistory = {
     optionId: optId,
     owner: data?.owner || "",
     strike: data?.strike ? Number(data.strike) : 0,
     expiry: data?.expiry ? Number(data.expiry) : 0,
-    size: data?.size ? Number(data.size) / 100 : 0,
+    size: data?.size ? Number(data.size) : 0,
     isCall: data?.isCall || false,
     premium: data?.premium ? Number(data.premium) : 0,
     lockedLiquidity: data?.lockedLiquidity ? Number(data.lockedLiquidity) : 0,

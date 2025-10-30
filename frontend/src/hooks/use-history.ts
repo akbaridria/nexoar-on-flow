@@ -6,7 +6,7 @@ import NexoarCore from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 
 access(all)
 fun main(address: Address): [UInt64] {
-    return NexoarCore.getUserOptions(address: address): 
+    return NexoarCore.getUserOptions(address: address)
 }
 `;
 
@@ -14,8 +14,8 @@ const GET_DETAIL_OPTION_SCRIPT = `
 import NexoarCore from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 
 access(all)
-fun main(optionId: UInt64): OptionsData? {
-    return NexoarCore.getDetailOptionsData(optionId: optionId):
+fun main(optionId: UInt64): NexoarCore.OptionsData? {
+    return NexoarCore.getDetailOptionsData(optionId: optionId)
 }
 `;
 
@@ -35,21 +35,24 @@ type OptionHistory = {
 
 const useHistory = () => {
   const { user } = useFlowCurrentUser();
-  const { data, isLoading } = useFlowQuery({
+  const { data, isLoading, error } = useFlowQuery({
     cadence: GET_HISTORY_SCRIPT,
     args: (arg, t) => [arg(user?.addr || "", t.Address)],
   });
   return {
     history: data as number[] | undefined,
     isLoading,
+    error,
   };
 };
 
 const useDetailOption = (optionId: number) => {
-  const { data, isLoading } = useFlowQuery({
+  const { data, isLoading, error } = useFlowQuery({
     cadence: GET_DETAIL_OPTION_SCRIPT,
     args: (arg, t) => [arg(optionId, t.UInt64)],
   });
+
+  console.log(error, "<<< error")
   return {
     option: data as OptionHistory | undefined,
     isLoading,

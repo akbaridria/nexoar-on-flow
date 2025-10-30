@@ -60,3 +60,10 @@ export const NETWORK_CONFIG: FlowConfig = {
   appDetailUrl: typeof window !== "undefined" ? window.location.origin : "",
   walletconnectProjectId: "183dd8548e76520612b2996b93ecf463"
 };
+
+export const DURATION_OPTIONS = [
+  { value: 1, label: "1 Day" },
+  { value: 3, label: "3 Days" },
+  { value: 7, label: "7 Days" },
+  { value: 30, label: "30 Days" },
+];
