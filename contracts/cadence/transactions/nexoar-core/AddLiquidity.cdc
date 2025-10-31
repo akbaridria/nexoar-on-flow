@@ -1,4 +1,4 @@
-import "NexoarCore"
+import "NexoarCoreV3"
 import "MockUSDC"
 import "FungibleToken"
 import "FungibleTokenMetadataViews"
@@ -19,6 +19,6 @@ transaction(amount: UFix64) {
     }
 
     execute {
-        NexoarCore.addLiquidity(payment: <-self.payment, amount: amount, address: self.accountAddress)
+        NexoarCoreV3.addLiquidity(payment: <-self.payment, amount: amount, address: self.accountAddress)
     }
 }

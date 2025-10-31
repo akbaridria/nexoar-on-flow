@@ -3,7 +3,7 @@ import { useFlowMutate } from "@onflow/react-sdk";
 import { useCallback } from "react";
 
 const ADD_LIQUIDITY_SCRIPT = `
-import NexoarCore from 0x${FlowJson.accounts["nexoar-on-flow"].address}
+import NexoarCoreV3 from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 import MockUSDC from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 import FungibleToken from 0x${FlowJson.dependencies.FungibleToken.aliases.testnet}
 import FungibleTokenMetadataViews from 0x${FlowJson.dependencies.FungibleTokenMetadataViews.aliases.testnet}
@@ -24,13 +24,13 @@ transaction(amount: UFix64) {
     }
 
     execute {
-        NexoarCore.addLiquidity(payment: <-self.payment, amount: amount, address: self.accountAddress)
+        NexoarCoreV3.addLiquidity(payment: <-self.payment, amount: amount, address: self.accountAddress)
     }
 }
 `;
 
 const REMOVE_LIQUIDITY_SCRIPT = `
-import NexoarCore from 0x${FlowJson.accounts["nexoar-on-flow"].address}
+import NexoarCoreV3 from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 import MockUSDC from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 import FungibleToken from 0x${FlowJson.dependencies.FungibleToken.aliases.testnet}
 import FungibleTokenMetadataViews from 0x${FlowJson.dependencies.FungibleTokenMetadataViews.aliases.testnet}
@@ -51,7 +51,7 @@ transaction(amount: UFix64) {
     }
 
     execute {
-        NexoarCore.removeLiquidity(amount: amount, address: self.accountAddress, recipient: self.recipient)
+        NexoarCoreV3.removeLiquidity(amount: amount, address: self.accountAddress, recipient: self.recipient)
     }
 }
 `;

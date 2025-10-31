@@ -6,7 +6,7 @@ import "OptionsPricing"
 import "MockUSDC"
 
 access(all)
-contract NexoarCore {
+contract NexoarCoreV3 {
     // data errors
     access(all) let StrikePriceZeroError: String
     access(all) let DaysZeroError: String
@@ -27,18 +27,18 @@ contract NexoarCore {
     access(all) struct OptionsData {
         access(all) var optionId: UInt64
         access(all) var owner: Address
-        access(all) var strike: UInt64
-        access(all) var expiry: UInt64
+        access(all) var strike: UFix64
+        access(all) var expiry: UFix64
         access(all) var size: UInt64
         access(all) var isCall: Bool
         access(all) var premium: UFix64
-        access(all) var lockedLiquidity: UInt64
+        access(all) var lockedLiquidity: UFix64
         access(all) var isExercised: Bool
         access(all) var profit: UFix64
-        access(all) var exercisePrice: UInt64
+        access(all) var exercisePrice: UFix64
         access(all) var tokenSymbol: String
 
-        init(optionId: UInt64, owner: Address, strike: UInt64, expiry: UInt64, size: UInt64, isCall: Bool, premium: UFix64, lockedLiquidity: UInt64, isExercised: Bool, profit: UFix64, exercisePrice: UInt64, tokenSymbol: String) {
+        init(optionId: UInt64, owner: Address, strike: UFix64, expiry: UFix64, size: UInt64, isCall: Bool, premium: UFix64, lockedLiquidity: UFix64, isExercised: Bool, profit: UFix64, exercisePrice: UFix64, tokenSymbol: String) {
             self.optionId = optionId
             self.owner = owner
             self.strike = strike
@@ -94,19 +94,19 @@ contract NexoarCore {
         var lockedLiquidity = premium * 2.0
         LiquidityManager.lockLiquidity(amount: lockedLiquidity)
 
-        let expiryTime = UInt64(getCurrentBlock().timestamp) + (days * 86400)
+        let expiryTime = getCurrentBlock().timestamp + UFix64((days * 86400))
         self.optionsData[newOptionId] = OptionsData(
             optionId: newOptionId,
             owner: address,
-            strike: UInt64(strikePrice),
+            strike: strikePrice,
             expiry: expiryTime,
             size: size,
             isCall: isCall,
             premium: premium,
-            lockedLiquidity: UInt64(lockedLiquidity),
+            lockedLiquidity: lockedLiquidity,
             isExercised: false,
             profit: 0.0,
-            exercisePrice: 0,
+            exercisePrice: 0.0,
             tokenSymbol: tokenSymbol
         )
         if !self.userOptions.containsKey(address) {
@@ -121,7 +121,7 @@ contract NexoarCore {
         
         assert(self.optionsData.containsKey(optionId), message: self.OptionDoesNotExistError)
         let option = self.optionsData[optionId]!
-        assert(UInt64(getCurrentBlock().timestamp) >= option.expiry, message: self.OptionNotExpiredError)
+        assert(getCurrentBlock().timestamp >= option.expiry, message: self.OptionNotExpiredError)
         assert(!option.isExercised, message: self.OptionAlreadyExercisedError)
 
         
@@ -164,7 +164,7 @@ contract NexoarCore {
             lockedLiquidity: option.lockedLiquidity,
             isExercised: true,
             profit: payout - option.premium,
-            exercisePrice: UInt64(spot),
+            exercisePrice: spot,
             tokenSymbol: option.tokenSymbol
         )
     }

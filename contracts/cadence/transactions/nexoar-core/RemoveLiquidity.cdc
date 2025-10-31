@@ -1,4 +1,4 @@
-import "NexoarCore"
+import "NexoarCoreV3"
 import "MockUSDC"
 import "FungibleToken"
 import "FungibleTokenMetadataViews"
@@ -19,6 +19,6 @@ transaction(amount: UFix64) {
     }
 
     execute {
-        NexoarCore.removeLiquidity(amount: amount, address: self.accountAddress, recipient: self.recipient)
+        NexoarCoreV3.removeLiquidity(amount: amount, address: self.accountAddress, recipient: self.recipient)
     }
 }

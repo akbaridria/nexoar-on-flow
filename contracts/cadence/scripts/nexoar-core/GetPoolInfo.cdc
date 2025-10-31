@@ -1,6 +1,6 @@
-import "NexoarCore"
+import "NexoarCoreV3"
 
 access(all)
 fun main(): {String: AnyStruct} {
-    return NexoarCore.getPoolInfo()
+    return NexoarCoreV3.getPoolInfo()
 }

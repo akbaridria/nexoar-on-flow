@@ -2,18 +2,18 @@ import { useFlowCurrentUser, useFlowQuery } from "@onflow/react-sdk";
 import FlowJson from "@/flow.json";
 
 const GET_POOL_INFO_SCRIPT = `
-import NexoarCore from 0x${FlowJson.accounts["nexoar-on-flow"].address}
+import NexoarCoreV3 from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 access(all)
     fun main(): {String: AnyStruct} {
-    return NexoarCore.getPoolInfo()
+    return NexoarCoreV3.getPoolInfo()
 }
 `;
 
 const GET_PROVIDER_BALANCE_SCRIPT = `
-import NexoarCore from 0x${FlowJson.accounts["nexoar-on-flow"].address}
+import NexoarCoreV3 from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 access(all)
 fun main(address: Address): UFix64 {
-    return NexoarCore.getProviderBalance(provider: address)
+    return NexoarCoreV3.getProviderBalance(provider: address)
 }
 `;
 const useGetPoolInfo = () => {

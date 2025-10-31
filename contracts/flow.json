@@ -1,49 +1,7 @@
 {
 	"contracts": {
-		"BetResolveHandler": {
-			"source": "cadence/contracts/BetResolveHandler.cdc",
-			"aliases": {
-				"testing": "0000000000000007"
-			}
-		},
-		"Flashbet": {
-			"source": "cadence/contracts/Flashbet.cdc",
-			"aliases": {
-				"testing": "0000000000000007"
-			}
-		},
-		"LiquidityManager": {
-			"source": "cadence/contracts/LiquidityManager.cdc",
-			"aliases": {
-				"testing": "0000000000000007"
-			}
-		},
-		"MockUSDC": {
-			"source": "cadence/contracts/MockUSDC.cdc",
-			"aliases": {
-				"testing": "0000000000000007"
-			}
-		},
-		"NexoarCore": {
-			"source": "cadence/contracts/NexoarCore.cdc",
-			"aliases": {
-				"testing": "0000000000000007"
-			}
-		},
-		"OptionExerciseHandler": {
-			"source": "cadence/contracts/OptionExerciseHandler.cdc",
-			"aliases": {
-				"testing": "0000000000000007"
-			}
-		},
-		"OptionsPricing": {
-			"source": "cadence/contracts/OptionsPricing.cdc",
-			"aliases": {
-				"testing": "0000000000000007"
-			}
-		},
-		"VaultTracker": {
-			"source": "cadence/contracts/VaultTracker.cdc",
+		"NexoarCoreV3": {
+			"source": "cadence/contracts/NexoarCoreV3.cdc",
 			"aliases": {
 				"testing": "0000000000000007"
 			}
@@ -64,6 +22,13 @@
 				"emulator": "f8d6e0586b0a20c7",
 				"mainnet": "f233dcee88fe0abe",
 				"testnet": "9a0766d93b6608b7"
+			}
+		},
+		"Flashbet": {
+			"source": "testnet://5d697c7d74bc0432.Flashbet",
+			"hash": "24249aafbfd29de0ce590eee7feca573338cd4ad4883bf274a885e2d640c6aad",
+			"aliases": {
+				"testnet": "5d697c7d74bc0432"
 			}
 		},
 		"FlowFees": {
@@ -95,7 +60,7 @@
 		},
 		"FlowTransactionScheduler": {
 			"source": "testnet://8c5303eaa26202d6.FlowTransactionScheduler",
-			"hash": "4e95e8ac5d5af87760fcadd5a2bfb217582e748a292dab24e83dac7db314f67f",
+			"hash": "7a2f0b22b53251065fa5db64b6c4329a7bf637012a006ab0b345f28e3b340db7",
 			"aliases": {
 				"emulator": "f8d6e0586b0a20c7",
 				"mainnet": "e467b9dd11fa00df",
@@ -129,6 +94,13 @@
 				"testnet": "9a0766d93b6608b7"
 			}
 		},
+		"LiquidityManager": {
+			"source": "testnet://5d697c7d74bc0432.LiquidityManager",
+			"hash": "8c008a1955bf7f3805d4b0560827103371f5ca426d0486c25fa1cd145d2cae84",
+			"aliases": {
+				"testnet": "5d697c7d74bc0432"
+			}
+		},
 		"MetadataViews": {
 			"source": "testnet://631e88ae7f1d7c20.MetadataViews",
 			"hash": "0b746cabba668c39de9dc47b94fc458f4119cbabb6883616e4a8750518310ccb",
@@ -138,6 +110,20 @@
 				"testnet": "631e88ae7f1d7c20"
 			}
 		},
+		"MockUSDC": {
+			"source": "testnet://5d697c7d74bc0432.MockUSDC",
+			"hash": "734ded317102ea3798e1d965fd9b6c7d3c95f998a873c13bd4a98df9d9510a1f",
+			"aliases": {
+				"testnet": "5d697c7d74bc0432"
+			}
+		},
+		"NexoarCore": {
+			"source": "testnet://5d697c7d74bc0432.NexoarCore",
+			"hash": "3f83ce93c77a637d091bda67acf1f987ec0d737348c17dd6cdaab93f00e5940b",
+			"aliases": {
+				"testnet": "5d697c7d74bc0432"
+			}
+		},
 		"NonFungibleToken": {
 			"source": "testnet://631e88ae7f1d7c20.NonFungibleToken",
 			"hash": "ac40c5a3ec05884ae48cb52ebf680deebb21e8a0143cd7d9b1dc88b0f107e088",
@@ -145,6 +131,27 @@
 				"emulator": "f8d6e0586b0a20c7",
 				"mainnet": "1d7e57aa55817448",
 				"testnet": "631e88ae7f1d7c20"
+			}
+		},
+		"OptionExerciseHandler": {
+			"source": "testnet://5d697c7d74bc0432.OptionExerciseHandler",
+			"hash": "4f21ddaa599944daff70acd93e16fbcd14556f09538de37ecd54814c82767c2a",
+			"aliases": {
+				"testnet": "5d697c7d74bc0432"
+			}
+		},
+		"OptionsPricing": {
+			"source": "testnet://5d697c7d74bc0432.OptionsPricing",
+			"hash": "68c3d0e4422ad56cdd61da1cb0f5c85a66962a1c085a5ec13d3366e4383160b3",
+			"aliases": {
+				"testnet": "5d697c7d74bc0432"
+			}
+		},
+		"VaultTracker": {
+			"source": "testnet://5d697c7d74bc0432.VaultTracker",
+			"hash": "8d076f753e178f1f0508b8c9bacce0068964c9f3343ecaf79f877d85c144cd48",
+			"aliases": {
+				"testnet": "5d697c7d74bc0432"
 			}
 		},
 		"ViewResolver": {
@@ -199,14 +206,7 @@
 		},
 		"testnet": {
 			"nexoar-on-flow": [
-				"MockUSDC",
-				"NexoarCore",
-				"OptionExerciseHandler",
-				"OptionsPricing",
-				"VaultTracker",
-				"BetResolveHandler",
-				"Flashbet",
-				"LiquidityManager"
+				"NexoarCoreV3"
 			]
 		}
 	}

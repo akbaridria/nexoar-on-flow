@@ -4,8 +4,8 @@ access(all) let account = Test.createAccount()
 
 access(all) fun testContract() {
     let err = Test.deployContract(
-        name: "NexoarCore",
-        path: "../contracts/NexoarCore.cdc",
+        name: "NexoarCoreV3",
+        path: "../contracts/NexoarCoreV3.cdc",
         arguments: [],
     )
 

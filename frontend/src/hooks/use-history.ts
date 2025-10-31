@@ -2,20 +2,20 @@ import FlowJson from "@/flow.json";
 import { useFlowCurrentUser, useFlowQuery } from "@onflow/react-sdk";
 
 const GET_HISTORY_SCRIPT = `
-import NexoarCore from 0x${FlowJson.accounts["nexoar-on-flow"].address}
+import NexoarCoreV3 from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 
 access(all)
 fun main(address: Address): [UInt64] {
-    return NexoarCore.getUserOptions(address: address)
+    return NexoarCoreV3.getUserOptions(address: address)
 }
 `;
 
 const GET_DETAIL_OPTION_SCRIPT = `
-import NexoarCore from 0x${FlowJson.accounts["nexoar-on-flow"].address}
+import NexoarCoreV3 from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 
 access(all)
-fun main(optionId: UInt64): NexoarCore.OptionsData? {
-    return NexoarCore.getDetailOptionsData(optionId: optionId)
+fun main(optionId: UInt64): NexoarCoreV3.OptionsData? {
+    return NexoarCoreV3.getDetailOptionsData(optionId: optionId)
 }
 `;
 

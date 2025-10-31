@@ -1,4 +1,4 @@
-import "NexoarCore"
+import "NexoarCoreV3"
 import "MockUSDC"
 import "FungibleTokenMetadataViews"
 import "FungibleToken"
@@ -51,7 +51,7 @@ transaction(
 
     execute {
         
-        let option = NexoarCore.createOption(
+        let option = NexoarCoreV3.createOption(
             payment: self.payment,
             strikePrice: strikePrice,
             days: days,

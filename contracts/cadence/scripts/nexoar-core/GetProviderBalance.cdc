@@ -1,6 +1,6 @@
-import "NexoarCore"
+import "NexoarCoreV3"
 
 access(all)
 fun main(address: Address): UFix64 {
-    return NexoarCore.getProviderBalance(provider: address)
+    return NexoarCoreV3.getProviderBalance(provider: address)
 }

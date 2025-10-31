@@ -3,7 +3,7 @@ import { useFlowCurrentUser, useFlowMutate } from "@onflow/react-sdk";
 import { useCallback } from "react";
 
 const CREATE_OPTIONS_SCRIPT = `
-import NexoarCore from 0x${FlowJson.accounts["nexoar-on-flow"].address}
+import NexoarCoreV3 from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 import MockUSDC from 0x${FlowJson.accounts["nexoar-on-flow"].address}
 import FungibleTokenMetadataViews from 0x${FlowJson.dependencies.FungibleTokenMetadataViews.aliases.testnet}
 import FungibleToken from 0x${FlowJson.dependencies.FungibleToken.aliases.testnet}
@@ -56,7 +56,7 @@ transaction(
 
     execute {
         
-        let option = NexoarCore.createOption(
+        let option = NexoarCoreV3.createOption(
             payment: self.payment,
             strikePrice: strikePrice,
             days: days,

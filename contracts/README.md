@@ -4,7 +4,7 @@ This project demonstrates a DeFi protocol on Flow with scheduled transactions, l
 
 ## Key Contracts
 
-- [`cadence/contracts/NexoarCore.cdc`](cadence/contracts/NexoarCore.cdc)
+- [`cadence/contracts/NexoarCoreV3.cdc`](cadence/contracts/NexoarCoreV3.cdc)
 - [`cadence/contracts/LiquidityManager.cdc`](cadence/contracts/LiquidityManager.cdc)
 - [`cadence/contracts/VaultTracker.cdc`](cadence/contracts/VaultTracker.cdc)
 - [`cadence/contracts/OptionsPricing.cdc`](cadence/contracts/OptionsPricing.cdc)

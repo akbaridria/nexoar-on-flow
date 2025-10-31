@@ -24,8 +24,8 @@
         "testing": "0000000000000007"
       }
     },
-    "NexoarCore": {
-      "source": "cadence/contracts/NexoarCore.cdc",
+    "NexoarCoreV3": {
+      "source": "cadence/contracts/NexoarCoreV3.cdc",
       "aliases": {
         "testing": "0000000000000007"
       }
@@ -193,7 +193,7 @@
     "testnet": {
       "nexoar": [
         "MockUSDC",
-        "NexoarCore",
+        "NexoarCoreV3",
         "OptionExerciseHandler",
         "OptionsPricing",
         "VaultTracker",

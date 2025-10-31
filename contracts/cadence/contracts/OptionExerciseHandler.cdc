@@ -1,5 +1,5 @@
 import "FlowTransactionScheduler"
-import "NexoarCore"
+import "NexoarCoreV3"
 import "MockUSDC"
 import "FungibleToken"
 
@@ -15,7 +15,7 @@ access(all) contract OptionExerciseHandler {
                 .borrow<&{FungibleToken.Receiver}>(/public/mockUSDCTokenReceiver)
                 ?? panic("Could not borrow receiver")
 
-            NexoarCore.exerciseOption(optionId: optionId, recipient: recipient)
+            NexoarCoreV3.exerciseOption(optionId: optionId, recipient: recipient)
         }
     }
 
