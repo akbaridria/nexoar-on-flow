@@ -36,8 +36,9 @@ contract NexoarCore {
         access(all) var isExercised: Bool
         access(all) var profit: UFix64
         access(all) var exercisePrice: UInt64
+        access(all) var tokenSymbol: String
 
-        init(optionId: UInt64, owner: Address, strike: UInt64, expiry: UInt64, size: UInt64, isCall: Bool, premium: UFix64, lockedLiquidity: UInt64, isExercised: Bool, profit: UFix64, exercisePrice: UInt64) {
+        init(optionId: UInt64, owner: Address, strike: UInt64, expiry: UInt64, size: UInt64, isCall: Bool, premium: UFix64, lockedLiquidity: UInt64, isExercised: Bool, profit: UFix64, exercisePrice: UInt64, tokenSymbol: String) {
             self.optionId = optionId
             self.owner = owner
             self.strike = strike
@@ -49,6 +50,7 @@ contract NexoarCore {
             self.isExercised = isExercised
             self.profit = profit
             self.exercisePrice = exercisePrice
+            self.tokenSymbol = tokenSymbol
         }
     }
 
@@ -104,7 +106,8 @@ contract NexoarCore {
             lockedLiquidity: UInt64(lockedLiquidity),
             isExercised: false,
             profit: 0.0,
-            exercisePrice: 0
+            exercisePrice: 0,
+            tokenSymbol: tokenSymbol
         )
         if !self.userOptions.containsKey(address) {
             self.userOptions[address] = []
@@ -122,7 +125,7 @@ contract NexoarCore {
         assert(!option.isExercised, message: self.OptionAlreadyExercisedError)
 
         
-        let spot = self.getTokenPriceInUSD(tokenSymbol: "USD") 
+        let spot = self.getTokenPriceInUSD(tokenSymbol: option.tokenSymbol) 
 
         
         let intrinsic = OptionsPricing.calculateIntrinsic(
@@ -161,7 +164,8 @@ contract NexoarCore {
             lockedLiquidity: option.lockedLiquidity,
             isExercised: true,
             profit: payout - option.premium,
-            exercisePrice: UInt64(spot)
+            exercisePrice: UInt64(spot),
+            tokenSymbol: option.tokenSymbol
         )
     }
 

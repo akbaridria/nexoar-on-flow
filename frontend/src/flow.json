@@ -179,10 +179,10 @@
       }
     },
     "nexoar-on-flow": {
-      "address": "084a308894ddce19",
+      "address": "5d697c7d74bc0432",
       "key": {
         "type": "file",
-        "location": "nexoar-on-flow.pkey"
+        "location": "nexoar-v2.pkey"
       }
     }
   },
